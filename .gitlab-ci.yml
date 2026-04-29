@@ -15,11 +15,19 @@
 # fire the pipeline; per-job rules are reserved for jobs that need a
 # stricter scope. Fleet-wide pattern standardized 2026-04-27.
 
+# Fleet policy 2026-04-29: argonautsystems projects are pulled off shared
+# runners (handoff note ~/.claude/rules/handoff-riskyeats-ci-2026-04-29.md;
+# MNEMOS mem_bdfff4d4cc69). Review path is codex-only. Without runners,
+# every push queues a `stuck_pending_no_matching_runners` failure that the
+# fleet CI watchdog flags. Disable the workflow until argonautsystems gets
+# self-hosted runners or comes back to shared runners.
+#
+# Local validation: uv sync + uv run investorclaw --version still works.
+# Adversarial review: codex-companion adversarial-review on each non-trivial
+# commit (per CLAUDE.md primary directive #6).
 workflow:
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_TAG'
+    - when: never
 
 stages:
   - lint
