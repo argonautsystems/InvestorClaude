@@ -1,0 +1,66 @@
+# InvestorClaude — GitLab CI pipeline.
+#
+# Phase 3 of IC_DECOMPOSITION: this is the Claude Code plugin adapter.
+# It ships as marketplace metadata + slash commands + skills + install
+# scripts; the runtime engine (ic-engine) and foundation (clio) install
+# transitively when the plugin's bin/install-investorclaw is run.
+#
+# Pipeline scope:
+#   lint       ruff check + format-check on the few python deps; jq /
+#              python json validation for plugin.json + marketplace.json.
+#   smoke      uv sync (pulls ic-engine + clio); verify the
+#              `investorclaw` console script reports the engine version.
+#
+# Trigger gate is centralized in workflow:rules below — push, MR, and tag
+# fire the pipeline; per-job rules are reserved for jobs that need a
+# stricter scope. Fleet-wide pattern standardized 2026-04-27.
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_TAG'
+
+stages:
+  - lint
+  - smoke
+
+variables:
+  UV_VERSION: "0.5.0"
+  # Pin uv's cache to the project-local dir so the GitLab cache below
+  # actually warms up on subsequent runs. Without this, uv uses the
+  # default user cache (~/.cache/uv) and every pipeline rebuilds the
+  # ic-engine + clio git+ deps + their transitive torch wheel from
+  # scratch, blowing minute-budget for every push.
+  UV_CACHE_DIR: .uv-cache
+  UV_LINK_MODE: copy
+
+default:
+  image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+  before_script:
+    - uv --version
+  cache:
+    key:
+      files:
+        - pyproject.toml
+    paths:
+      - .uv-cache
+
+lint:
+  stage: lint
+  script:
+    - uv tool install ruff
+    - uv tool run ruff check .   # ruff exits 0 on empty source; if it fails, fail CI
+    # Validate plugin manifests parse as JSON
+    - python3 -c "import json; json.load(open('.claude-plugin/plugin.json'))"
+    - python3 -c "import json; json.load(open('.claude-plugin/marketplace.json'))"
+
+smoke:
+  stage: smoke
+  needs: [lint]
+  script:
+    - apt-get update -qq && apt-get install -qq -y curl git build-essential
+    - uv sync
+    - uv run python -c "import ic_engine; print(f'ic_engine v{ic_engine.__version__}')"
+    - uv run python -c "import clio; print(f'clio v{clio.__version__}')"
+    - uv run investorclaw --version

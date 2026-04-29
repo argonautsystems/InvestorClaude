@@ -1,0 +1,71 @@
+#!/bin/bash
+# Copyright 2026 InvestorClaw Contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# InvestorClaw installation helper — narrow wrapper for Claude Code plugin
+# Usage: install-investorclaw
+# No arguments accepted — ensures only the intended installation runs
+
+set -euo pipefail
+
+if [[ $# -gt 0 ]]; then
+  echo "❌ install-investorclaw accepts no arguments"
+  exit 1
+fi
+
+echo "📦 Installing InvestorClaude (v2.6.0)..."
+echo ""
+
+# Phase 3 of IC_DECOMPOSITION: install ic-engine (the portfolio engine) and
+# clio (foundation primitives) as the runtime stack the slash commands rely
+# on. The Claude Code plugin metadata (marketplace.json + slash commands +
+# skills) ships from this repo; the Python CLI (`investorclaw`) comes from
+# the ic-engine console script.
+echo "Source: GitLab (https://gitlab.com/argonautsystems/InvestorClaude)"
+echo ""
+
+if ! command -v uv >/dev/null 2>&1; then
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "❌ uv is not installed and curl is required to install it"
+    exit 1
+  fi
+  echo "Installing uv..."
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+
+if ! command -v uv >/dev/null 2>&1; then
+  echo "❌ uv installation did not put uv on PATH"
+  echo "   Tip: add ~/.local/bin to PATH, then rerun bin/install-investorclaw"
+  exit 1
+fi
+
+# Resolve the script's own repo dir so we install from THIS plugin checkout
+# (transitively pulls ic-engine + clio per pyproject.toml dependencies),
+# rather than re-fetching the upstream InvestorClaw skill repo.
+_HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+python3 -m pip install --user -e "$_HERE" || {
+  echo "❌ Installation failed"
+  echo "   Tip: ensure pip can reach gitlab.com (ic-engine + clio are git+ deps)"
+  exit 1
+}
+
+echo "✅ InvestorClaude installed successfully!"
+echo ""
+echo "Next steps:"
+echo "  1. Run: investorclaw ask \"what's in my portfolio?\""
+echo "  2. Follow any setup guidance returned by InvestorClaw"
+echo ""
+investorclaw --version 2>/dev/null || echo "⚠️  Verify installation: run 'investorclaw --version'"

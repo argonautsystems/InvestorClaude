@@ -1,0 +1,144 @@
+#!/bin/bash
+# Copyright 2026 InvestorClaw Contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# InvestorClaude setup orchestrator for Claude Code.
+#
+# Phase 3 adapter shape:
+# 1. Resolve this InvestorClaude plugin checkout
+# 2. Install the adapter with `pip install -e .`
+# 3. Let pyproject.toml pull ic-engine + clio via pinned git+ deps
+# 4. Run the InvestorClaw portfolio setup wizard
+#
+# Exit codes:
+#   0: Success
+#   1: Python or pip unavailable
+#   2: Adapter installation failed
+#   3: Setup wizard failed
+
+set -euo pipefail
+
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+log_step() {
+    echo -e "${BLUE}->${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}OK${NC} $1"
+}
+
+log_warning() {
+    echo -e "${YELLOW}WARN${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}ERROR${NC} $1"
+}
+
+OS=$(uname -s)
+if [[ "$OS" == "Darwin" ]]; then
+    OS="macOS"
+elif [[ "$OS" == "Linux" ]]; then
+    OS="Linux"
+elif [[ "$OS" == *"MINGW"* ]] || [[ "$OS" == *"CYGWIN"* ]]; then
+    OS="Windows"
+fi
+
+PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+PORTFOLIO_DIR="${INVESTORCLAW_PORTFOLIO_DIR:-$HOME/portfolios}"
+PORTFOLIO_CONFIG="$HOME/.investorclaw/.env"
+
+log_step "InvestorClaude setup orchestrator (Detected: $OS)"
+
+if [[ ! -f "$PLUGIN_ROOT/pyproject.toml" ]]; then
+    log_error "Could not find pyproject.toml at $PLUGIN_ROOT"
+    exit 2
+fi
+
+log_step "Checking Python and pip..."
+
+if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
+    log_error "$PYTHON_BIN not found"
+    exit 1
+fi
+
+if ! "$PYTHON_BIN" -m pip --version >/dev/null 2>&1; then
+    log_error "pip is not available for $PYTHON_BIN"
+    exit 1
+fi
+
+log_success "$($PYTHON_BIN --version 2>&1)"
+
+log_step "Installing InvestorClaude adapter from this checkout..."
+
+if (cd "$PLUGIN_ROOT" && "$PYTHON_BIN" -m pip install -e .); then
+    log_success "Adapter installed; ic-engine and clio resolved from pinned dependencies"
+else
+    log_error "Failed to install InvestorClaude adapter"
+    echo "Tip: ensure pip can reach gitlab.com for ic-engine and clio git+ dependencies."
+    exit 2
+fi
+
+export PATH="$HOME/.local/bin:$PATH"
+
+log_step "Verifying investorclaw console script..."
+
+if command -v investorclaw >/dev/null 2>&1; then
+    VERSION=$(investorclaw --version 2>&1 | head -1 || true)
+    if [[ -n "$VERSION" ]]; then
+        log_success "InvestorClaw ready ($VERSION)"
+    else
+        log_success "InvestorClaw command is available"
+    fi
+else
+    log_error "investorclaw command not found after install"
+    echo "Tip: add your Python user scripts directory to PATH, then rerun setup-orchestrator."
+    exit 2
+fi
+
+log_step "Checking portfolio configuration..."
+
+mkdir -p "$PORTFOLIO_DIR"
+mkdir -p "$HOME/.investorclaw"
+
+if [[ ! -f "$PORTFOLIO_CONFIG" ]]; then
+    log_step "Running portfolio setup wizard..."
+    if investorclaw config --section=setup; then
+        log_success "Portfolio setup complete"
+    else
+        log_error "Portfolio setup failed"
+        exit 3
+    fi
+else
+    log_success "Portfolio configuration found at $PORTFOLIO_CONFIG"
+fi
+
+echo ""
+log_success "Setup complete"
+echo ""
+echo "Next steps:"
+echo "  1. Analyze portfolio: investorclaw ask \"what's in my portfolio?\""
+echo "  2. In Claude Code, use /investorclaw:ask \"what's in my portfolio?\""
+echo ""
+echo "IMPORTANT: InvestorClaw is an educational analysis tool, not financial advice."
+echo "Consult a qualified financial advisor before making investment decisions."
+echo ""
+
+exit 0

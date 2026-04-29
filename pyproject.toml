@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=70", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "investorclaude"
+version = "2.6.0"
+description = "InvestorClaude — Claude Code plugin adapter for InvestorClaw portfolio analysis. Deterministic ask/refresh surface wrapping ic-engine + clio. Companion to gitlab.com/argonautsystems/InvestorClaw."
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+readme = "README.md"
+keywords = ["portfolio", "finance", "openai", "claude-code", "claude-plugin", "finos"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial",
+]
+
+# Phase 3 of IC_DECOMPOSITION: InvestorClaude is the Claude Code plugin
+# adapter. The Python engine lives in ic-engine; foundation primitives in
+# clio. This package is essentially Markdown command files + SKILL.md files
+# + bin/ install scripts; the deps below pull the runtime that backs the
+# slash-command implementations.
+dependencies = [
+    "ic-engine @ git+https://gitlab.com/argonautsystems/ic-engine.git@v2.5.1",
+    "clio @ git+https://gitlab.com/argonautsystems/clio.git@v0.1.0",
+]
+
+[project.urls]
+Homepage = "https://gitlab.com/argonautsystems/InvestorClaude"
+Repository = "https://gitlab.com/argonautsystems/InvestorClaude"
+Issues = "https://gitlab.com/argonautsystems/InvestorClaude/-/issues"
+Spec = "https://gitlab.com/argonautsystems/InvestorClaw/-/blob/main/docs/IC_DECOMPOSITION_SPEC.md"
+
+# No Python source in this repo. The plugin manifest, slash commands,
+# skills, and install scripts are the user-facing surface; pip-install just
+# pulls the engine + foundation deps into the user's Python environment.
+[tool.setuptools]
+packages = []
+
+[tool.uv]
+python-preference = "managed"
+required-version = ">=0.5"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.1.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = [
+    "E501",
+    "E402",
+    "E741",
+]

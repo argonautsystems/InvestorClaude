@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+
+# uv
+.uv-cache/
+.uv/
+
+# Test/Lint caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project artifacts (runtime, never committed)
+*.log
+.env
+.env.local
+.investorclaw/

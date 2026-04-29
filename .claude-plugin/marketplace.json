@@ -1,0 +1,28 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "investorclaude",
+  "description": "Claude Code plugin marketplace entry for InvestorClaw portfolio analysis and market intelligence.",
+  "metadata": {
+    "description": "InvestorClaude marketplace — Claude Code plugin for portfolio analysis (holdings, performance, bonds, analyst consensus, multi-factor synthesis). Backed by ic-engine + clio."
+  },
+  "owner": {
+    "name": "Jason Perlow",
+    "email": "jperlow@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "investorclaw",
+      "description": "Multi-account portfolio analysis: holdings snapshots, performance metrics, bond analytics (YTM, duration, FRED-backed benchmarks), analyst consensus, news correlation, multi-factor synthesis, optimization, CSV/Excel reporting. Built-in financial-advice guardrails (educational output only).",
+      "category": "finance",
+      "tags": [
+        "portfolio-analysis",
+        "market-intelligence",
+        "bonds",
+        "financial-education",
+        "csv-excel"
+      ],
+      "source": "./",
+      "homepage": "https://gitlab.com/argonautsystems/InvestorClaude"
+    }
+  ]
+}
