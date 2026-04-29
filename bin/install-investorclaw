@@ -24,7 +24,7 @@ if [[ $# -gt 0 ]]; then
   exit 1
 fi
 
-echo "📦 Installing InvestorClaude (v2.6.0)..."
+echo "📦 Installing InvestorClaude (v2.6.1)..."
 echo ""
 
 # Phase 3 of IC_DECOMPOSITION: install ic-engine (the portfolio engine) and

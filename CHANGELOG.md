@@ -1,5 +1,50 @@
 # Changelog
 
+## v2.6.1 - Auto-Bootstrap on First Slash Command
+
+The `/investorclaw:ask` and `/investorclaw:refresh` slash commands now
+auto-bootstrap `uv` and the `investorclaw` CLI + `ic-engine` on first use,
+matching the per-runtime install pattern used by `openclaw`, `zeroclaw`, and
+`hermes`. The plugin no longer assumes the user has already run
+`bin/install-investorclaw` manually before their first prompt.
+
+### What Changed
+
+- `commands/ask.md`: prepended a `command -v investorclaw` guard that runs
+  `${CLAUDE_PLUGIN_ROOT}/bin/install-investorclaw` if the CLI is missing,
+  then exports `$HOME/.local/bin` onto `PATH` for the freshly-installed
+  `uv` + `investorclaw` shims.
+- `commands/refresh.md`: same auto-bootstrap guard.
+- `allowed-tools` widened from `Bash(investorclaw ...)` to `Bash(*)` because
+  the bootstrap shells out to `bash`, `curl`, and `uv` before the
+  `investorclaw` binary exists.
+
+### Rationale
+
+v2.6.0 documented the install path in `INSTALL_FLOW.md` and the slash command
+preambles, but users who installed the plugin from the marketplace and ran
+`/investorclaw:ask` immediately got "command not found" — they had to read the
+docs and run `bin/install-investorclaw` manually first. The Claw-family
+runtimes (openclaw/zeroclaw/hermes) all auto-bootstrap on first use; this
+brings InvestorClaude in line.
+
+### No Functional Changes
+
+- ic-engine pin: still `v2.5.1`.
+- clio pin: still `v0.1.0`.
+- Slash-command surface: still `ask` + `refresh`.
+- Marketplace submission: pinned to v2.6.0 SHA `3fd912e2`. v2.6.1 is an
+  additive tag — it does not invalidate the pending submission.
+
+## v2.6.0 - Anthropic Marketplace Submission
+
+InvestorClaude is now a self-contained Claude Code plugin published as a
+marketplace at the repo root (`marketplace.json` with `source: "./"`).
+Includes `PRIVACY.md` for marketplace requirements, scrubbed history (no
+internal hostnames, no shared sudo passwords), and a v2.5.1 → v2.6.0 tag
+rotation across the three publication remotes (argonas, gitlab, github).
+Submitted to Anthropic at SHA `3fd912e218cefb58935184f5275e314106bb5ea9`.
+
 ## v2.5.1 - Two-Command Slash Surface
 
 InvestorClaude keeps the ic-engine v2.5.0 runtime surface but collapses the

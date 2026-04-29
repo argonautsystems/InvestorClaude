@@ -1,21 +1,21 @@
 ---
 name: ask
 description: Ask anything about your portfolio in natural language. Holdings, performance, bonds, news, optimization, target allocation, cash flow, peer comparison — one command answers all of them.
-allowed-tools: Bash(investorclaw ask *)
+allowed-tools: Bash(*)
 ---
 
-> **Prerequisite:** the `investorclaw` CLI must be installed on your `$PATH` first. This plugin only wires the slash-command surface; the analytics engine ships separately. The full first-run sequence:
->
-> 1. **Register the marketplace:** `/plugin marketplace add https://gitlab.com/argonautsystems/InvestorClaude.git`
-> 2. **Install the plugin from it:** `/plugin install investorclaw@investorclaude` — this is what actually surfaces the slash commands.
-> 3. **Bootstrap the CLI + analytics engine:** run `bin/install-investorclaw` from the plugin cache (`~/.claude/plugins/cache/investorclaude/investorclaw/<version>/bin/install-investorclaw`) or a source clone (`git clone https://gitlab.com/argonautsystems/InvestorClaude.git && cd InvestorClaude && bin/install-investorclaw`). It bootstraps `uv` and pip-installs the InvestorClaw CLI + `ic-engine`.
->
-> See [INSTALL_FLOW.md](../INSTALL_FLOW.md) for full detail. If `investorclaw` is not on `$PATH` when this slash command runs, the `Bash` tool call returns "command not found" — that's the signal that step 3 hasn't run yet.
-
-Run the InvestorClaw v2.6.0 natural-language entry point.
+Run the InvestorClaw v2.6.1 natural-language entry point. On first use, this auto-bootstraps `uv` and the `investorclaw` CLI + `ic-engine` into the user's environment (matches the openclaw/zeroclaw/hermes per-runtime install pattern). Subsequent calls skip the bootstrap and run directly.
 
 **Execute:**
 ```bash
+export PATH="$HOME/.local/bin:$PATH"
+if ! command -v investorclaw >/dev/null 2>&1; then
+    echo "📦 First run — bootstrapping InvestorClaw CLI + ic-engine via uv..."
+    bash "${CLAUDE_PLUGIN_ROOT}/bin/install-investorclaw" || {
+        echo "❌ InvestorClaw bootstrap failed. See ${CLAUDE_PLUGIN_ROOT}/INSTALL_FLOW.md or run bin/install-investorclaw manually."
+        exit 1
+    }
+fi
 investorclaw ask "$ARGUMENTS"
 ```
 
