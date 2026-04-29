@@ -1,12 +1,17 @@
 """Regression test for the v2.5.1 → v2.5.2 parser fix.
 
-Drives extract_detected() against the real recorded tool_invocations
-in harness/reports/v2.5.1-linux-x86-host-cobol-2026-04-27-PARSER-BUG.jsonl.
-With the v2.5.1 logic, every prompt with a Skill invocation yielded
-detected=[]; with the v2.5.2 fix, detected resolves to the canonical
-subcommand the agent invoked.
+The v2.5.1 extractor only handled `Bash` tool invocations and slash-style
+tool names ending in `:<sub>`. Claude Code's actual stream-json output
+surfaces plugin slash commands as `Skill` tool calls with the slash name
+in `input.skill`. v2.5.1 missed every Skill invocation; v2.5.2 added the
+Skill branch.
+
+This test asserts the differential behavior on a small synthetic fixture:
+v2.5.1 logic must miss the Skill row, v2.5.2 logic must catch it. The
+real-data fixture this was originally captured against (a deleted JSONL
+test artifact) is not required to prove the regression.
 """
-import json
+
 import re
 import sys
 from pathlib import Path
@@ -14,13 +19,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from parse_stream_json import extract_detected, matches  # noqa: E402
 
-REPORTS = Path(__file__).parent.parent / "reports"
-BUG_JSONL = REPORTS / "v2.5.1-linux-x86-host-cobol-2026-04-27-PARSER-BUG.jsonl"
-
 
 def v251_extract(tool_invocations):
     """The v2.5.1 (buggy) extraction logic, kept verbatim so the test
-    proves the captured dataset exposes the bug."""
+    documents the bug being regression-guarded."""
     detected = set()
     subs = ("ask", "refresh", "session", "stonkmode", "check-updates")
     for name, arg in tool_invocations:
@@ -34,41 +36,61 @@ def v251_extract(tool_invocations):
     return sorted(detected)
 
 
+# Three rows exercising the parser's three input shapes:
+#   - Skill: investorclaw:ask  → v2.5.1 misses; v2.5.2 catches
+#   - Bash:  `investorclaw ask`→ both catch
+#   - mixed Skill+Bash         → both catch (v2.5.1 via Bash, v2.5.2 via either)
+FIXTURE = [
+    {
+        "id": "skill-only",
+        "expected": ["ask"],
+        "tool_invocations": [("Skill", '{"skill": "investorclaw:ask"}')],
+    },
+    {
+        "id": "bash-only",
+        "expected": ["ask"],
+        "tool_invocations": [("Bash", "investorclaw ask 'what is in my portfolio'")],
+    },
+    {
+        "id": "mixed",
+        "expected": ["ask"],
+        "tool_invocations": [
+            ("Skill", '{"skill": "investorclaw:ask"}'),
+            ("Bash", "investorclaw ask 'follow up'"),
+        ],
+    },
+]
+
+
+def passes(extractor, row):
+    detected = extractor(row["tool_invocations"])
+    return any(matches(e, detected) for e in row["expected"])
+
+
 def main():
-    rows = [json.loads(l) for l in BUG_JSONL.read_text().splitlines() if l.strip()]
-    assert len(rows) == 30, f"expected 30 rows, got {len(rows)}"
+    v251_passes = sum(1 for r in FIXTURE if passes(v251_extract, r))
+    v252_passes = sum(1 for r in FIXTURE if passes(extract_detected, r))
 
-    v251_pass = sum(
-        1
-        for r in rows
-        if any(
-            matches(e, v251_extract([tuple(t) for t in r["tool_invocations"]]))
-            for e in r["expected"]
-        )
+    # v2.5.1 catches Bash-only and mixed (the Bash branch fires); misses skill-only
+    assert v251_passes == 2, f"v2.5.1 should catch 2/3, got {v251_passes}"
+
+    # v2.5.2 catches all three
+    assert v252_passes == 3, f"v2.5.2 should catch 3/3, got {v252_passes}"
+
+    # Direct assertion: the Skill→ask extraction must succeed in v2.5.2
+    skill_only_detected = extract_detected(FIXTURE[0]["tool_invocations"])
+    assert "ask" in skill_only_detected, (
+        f"v2.5.2 Skill extraction broken: detected={skill_only_detected}"
     )
-    assert v251_pass == 1, f"v2.5.1 logic should reproduce 1/30, got {v251_pass}"
 
-    v252_pass = sum(
-        1
-        for r in rows
-        if any(
-            matches(e, extract_detected([tuple(t) for t in r["tool_invocations"]]))
-            for e in r["expected"]
-        )
+    # And must fail in v2.5.1 (regression guard)
+    skill_only_v251 = v251_extract(FIXTURE[0]["tool_invocations"])
+    assert "ask" not in skill_only_v251, (
+        f"v2.5.1 should miss Skill rows: detected={skill_only_v251}"
     )
-    assert v252_pass == 30, f"v2.5.2 logic should recover 30/30, got {v252_pass}"
 
-    for r in rows:
-        invs = [tuple(t) for t in r["tool_invocations"]]
-        has_ask_skill = any(
-            name == "Skill" and '"skill": "investorclaw:ask"' in arg for name, arg in invs
-        )
-        if has_ask_skill:
-            detected = extract_detected(invs)
-            assert "ask" in detected, f"{r['id']}: Skill→ask extraction missed: {detected}"
-
-    print(f"v2.5.1 logic: {v251_pass}/30 (expected 1/30) — bug reproduced")
-    print(f"v2.5.2 logic: {v252_pass}/30 (expected 30/30) — fix verified")
+    print(f"v2.5.1 logic: {v251_passes}/3 — Skill-only row missed (regression reproduced)")
+    print(f"v2.5.2 logic: {v252_passes}/3 — Skill-only row caught (fix verified)")
 
 
 if __name__ == "__main__":
