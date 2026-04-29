@@ -1,5 +1,41 @@
 # Changelog
 
+## v2.6.2 - Fix install-investorclaw to use uv instead of system pip
+
+`bin/install-investorclaw` was calling `python3 -m pip install --user -e .`
+to materialize the InvestorClaw CLI + its `ic-engine` / `clio` git+ deps.
+On PEP 668-protected distros (Debian 12+, Ubuntu 23.04+, Raspberry Pi OS)
+that fails with `error: externally-managed-environment` and the v2.6.1
+auto-bootstrap dies before producing a usable `investorclaw` on `$PATH`.
+
+### What Changed
+
+- `bin/install-investorclaw`: replaced the `pip --user -e` invocation with
+  `UV_PROJECT_ENVIRONMENT=$HOME/.cache/investorclaw/.venv uv sync --python 3.12`,
+  matching the openclaw/zeroclaw/hermes per-runtime install convention.
+  The script then symlinks `$VENV_DIR/bin/investorclaw` to
+  `$HOME/.local/bin/investorclaw` exactly as `openclaw/install.sh` does.
+- Python 3.12 pin: numpy 1.26.4 (transitive dep through ic-engine) has no
+  3.13 wheels and falls back to a source build that needs gcc/cc, which
+  many Pi/cloud containers don't ship. Pinning 3.12 lands a wheel directly.
+
+### Why It Matters
+
+- v2.6.1 fixes cold-install UX on Linux distros without PEP 668 (older
+  Ubuntu, NixOS, Arch w/o `--break-system-packages`), but breaks fresh
+  installs on Debian 12 + Pi OS. v2.6.2 closes that gap.
+- The fix is the same install pattern documented in CLAUDE.md gotchas:
+  *"InvestorClaw/Claude need uv, not system python3"*. v2.6.0/v2.6.1
+  violated that rule in a script that's only exercised on first install.
+
+### No Functional Changes
+
+- `commands/ask.md`, `commands/refresh.md`: unchanged (still call
+  `${CLAUDE_PLUGIN_ROOT}/bin/install-investorclaw` on first run).
+- ic-engine pin: still `v2.5.1`. clio pin: still `v0.1.0`.
+- Marketplace submission v2.6.0 SHA `3fd912e2` is unaffected — v2.6.2 is
+  an additive tag.
+
 ## v2.6.1 - Auto-Bootstrap on First Slash Command
 
 The `/investorclaw:ask` and `/investorclaw:refresh` slash commands now

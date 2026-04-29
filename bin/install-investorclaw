@@ -24,7 +24,7 @@ if [[ $# -gt 0 ]]; then
   exit 1
 fi
 
-echo "📦 Installing InvestorClaude (v2.6.1)..."
+echo "📦 Installing InvestorClaude (v2.6.2)..."
 echo ""
 
 # Phase 3 of IC_DECOMPOSITION: install ic-engine (the portfolio engine) and
@@ -56,16 +56,28 @@ fi
 # rather than re-fetching the upstream InvestorClaw skill repo.
 _HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-python3 -m pip install --user -e "$_HERE" || {
-  echo "❌ Installation failed"
-  echo "   Tip: ensure pip can reach gitlab.com (ic-engine + clio are git+ deps)"
+# Install via uv into a project-local venv at $HOME/.cache/investorclaw/.venv
+# (matches openclaw/zeroclaw/hermes per-runtime install convention). System
+# pip is rejected on PEP 668-protected distros (Debian/Ubuntu/Pi OS); uv
+# manages its own Python and venv so it sidesteps that entirely.
+VENV_DIR="${INVESTORCLAW_VENV_DIR:-$HOME/.cache/investorclaw/.venv}"
+mkdir -p "$(dirname "$VENV_DIR")" "$HOME/.local/bin"
+
+(cd "$_HERE" && UV_PROJECT_ENVIRONMENT="$VENV_DIR" uv sync --python 3.12) || {
+  echo "❌ Installation failed (uv sync)"
+  echo "   Tip: ensure git is available + can reach gitlab.com (ic-engine + clio are git+ deps)"
+  echo "   Tip: numpy 1.26.4 lacks Python 3.13 wheels — we pin 3.12 for that reason"
   exit 1
 }
 
+ln -sf "$VENV_DIR/bin/investorclaw" "$HOME/.local/bin/investorclaw"
+
 echo "✅ InvestorClaude installed successfully!"
+echo "   venv: $VENV_DIR"
+echo "   bin:  $HOME/.local/bin/investorclaw -> $VENV_DIR/bin/investorclaw"
 echo ""
 echo "Next steps:"
 echo "  1. Run: investorclaw ask \"what's in my portfolio?\""
 echo "  2. Follow any setup guidance returned by InvestorClaw"
 echo ""
-investorclaw --version 2>/dev/null || echo "⚠️  Verify installation: run 'investorclaw --version'"
+"$HOME/.local/bin/investorclaw" --version 2>/dev/null || echo "⚠️  Verify installation: run 'investorclaw --version'"

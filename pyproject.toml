@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "investorclaude"
-version = "2.6.1"
+version = "2.6.2"
 description = "InvestorClaude — Claude Code plugin adapter for InvestorClaw portfolio analysis. Deterministic ask/refresh surface wrapping ic-engine + clio. Companion to gitlab.com/argonautsystems/InvestorClaw."
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
