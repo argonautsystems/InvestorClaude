@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "investorclaude"
-version = "2.6.2"
+version = "2.6.3"
 description = "InvestorClaude — Claude Code plugin adapter for InvestorClaw portfolio analysis. Deterministic ask/refresh surface wrapping ic-engine + clio. Companion to gitlab.com/argonautsystems/InvestorClaw."
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
@@ -27,7 +27,7 @@ classifiers = [
 # + bin/ install scripts; the deps below pull the runtime that backs the
 # slash-command implementations.
 dependencies = [
-    "ic-engine @ git+https://gitlab.com/argonautsystems/ic-engine.git@v2.5.1",
+    "ic-engine @ git+https://gitlab.com/argonautsystems/ic-engine.git@0cd6ae03a747846ee9de5c83d91ab753311db1f8",
     "clio @ git+https://gitlab.com/argonautsystems/clio.git@v0.1.0",
 ]
 
