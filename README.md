@@ -2,10 +2,13 @@
 
 Portfolio analysis and market intelligence for Claude Code.
 
-v2.6.0 | Apache 2.0 | Educational Use Only
+v2.6.3 | Apache 2.0 | Educational Use Only
 
 InvestorClaude is the Claude Code adapter for the InvestorClaw / ic-engine
-runtime. Claude Code is the primary platform for this package.
+runtime. Claude Code is the primary platform for this package. Current
+v4.x deployments use the containerized InvestorClaw engine; this package
+remains the Claude Code install surface while Anthropic marketplace
+acceptance is pending.
 
 ## Breaking Command Surface Change
 
@@ -66,6 +69,12 @@ After official marketplace acceptance, use:
 
 ```text
 /plugin install investorclaw@claude-plugins-official
+```
+
+For OpenClaw / ZeroClaw / Hermes users, use the ClawHub package instead:
+
+```bash
+clawhub install perlowja/investorclaw
 ```
 
 After install, ask your first question:
@@ -140,6 +149,23 @@ compete with `/investorclaw:ask` when Claude Code routes portfolio prompts.
 | `investorclaw stonkmode` | Narrated commentary mode |
 | `investorclaw check-updates` | Check for ic-engine and InvestorClaude updates |
 
+## Web Portal
+
+The v4.x runtime exposes a local dashboard at `http://localhost:18092/`.
+It shares the same engine and data as the MCP/agent endpoint on
+`http://localhost:18090/`.
+
+Tabs: Overview · Holdings · Performance · WhatChanged · Scenarios · Bonds ·
+Optimize · Cashflow · Peer · Analyst · News · Markets · Lookup · Synthesis ·
+Reports · Settings · About. Overview includes a Regenerate button that runs
+setup, refresh, and the 12 section analyzers as a background sweep. Settings
+includes a web upload form for CSV, XLSX, PDF, JSON, OFX, and QFX portfolio
+files plus provider-key management.
+
+Provider keys can include `TOGETHER_API_KEY`, `FINNHUB_KEY`, `NEWSAPI_KEY`,
+`ALPHA_VANTAGE_KEY`, `MASSIVE_API_KEY`, `MARKETAUX_API_KEY`, `FRED_API_KEY`,
+and `OPENAI_API_KEY`.
+
 ## How It Works
 
 1. You upload a portfolio by CSV, Excel, PDF, screenshot, or setup.
@@ -169,7 +195,7 @@ See [DISCLAIMER.md](DISCLAIMER.md) for guardrails and educational-use constraint
 
 - [DISCOVERY_HIERARCHY.md](DISCOVERY_HIERARCHY.md): Claude Code discovery and deterministic interaction model
 - [INSTALL_FLOW.md](INSTALL_FLOW.md): Marketplace install and setup flow
-- [CHANGELOG.md](CHANGELOG.md): v2.6.0 release notes
+- [CHANGELOG.md](CHANGELOG.md): v2.6.x release notes
 - [DISCLAIMER.md](DISCLAIMER.md): Educational-use disclaimer and guardrails
 
 ## Troubleshooting
@@ -198,7 +224,7 @@ engine-guided setup.
 
 ### Performance Is Slow
 
-The first v2.6 prompt may take 30-60 seconds while ic-engine builds the signed
+The first prompt may take 30-60 seconds while ic-engine builds the signed
 deterministic envelope. Later prompts reuse cached pipeline output unless you
 refresh. Large portfolios with 500+ holdings take longer.
 
@@ -206,5 +232,5 @@ refresh. Large portfolios with 500+ holdings take longer.
 
 Production Ready | Apache 2.0
 
-InvestorClaude v2.6.0 for Claude Code. Portfolio analysis. Educational only. No
+InvestorClaude v2.6.3 for Claude Code. Portfolio analysis. Educational only. No
 investment advice.
