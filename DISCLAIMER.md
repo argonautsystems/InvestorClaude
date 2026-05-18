@@ -15,6 +15,6 @@
 - Consult-role prompts may optionally be sent to Google AI Studio or to a local
   llama.cpp server when configured by the user.
 - Market data requests flow through NewsAPI, Finnhub, Alpha Vantage, FRED, and
-  Polygon-via-Massive only when the user supplies the corresponding API keys.
+  Massive only when the user supplies the corresponding API keys.
 - Portfolio CSV data stays local except when the user's request includes that
   data in a prompt sent to the configured narrative provider.

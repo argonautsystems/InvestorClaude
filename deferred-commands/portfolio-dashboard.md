@@ -130,7 +130,7 @@ When `--stonkmode on`:
 | 100 positions | ~15s | 42KB |
 | 200+ positions | ~25-30s | 50KB |
 
-Times: Yfinance provider (free). With Polygon (paid): 2-3s faster.
+Times: Yfinance provider (free). With Massive (paid): 2-3s faster.
 
 ## Errors & Troubleshooting
 

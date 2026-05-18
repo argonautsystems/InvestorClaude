@@ -83,15 +83,15 @@ asks for (in order):
 |---|---|---|---|
 | **≤ 50 symbols** | `TOGETHER_API_KEY` (narrative) | — | yfinance handles quotes/history at this scale |
 | **50–200 symbols** | `TOGETHER_API_KEY` | `FINNHUB_KEY` (free 60/min) + `NEWSAPI_KEY` (free 100/day) | Real-time quotes + analyst + per-symbol news without yfinance throttle |
-| **200+ symbols** | `TOGETHER_API_KEY` + `MASSIVE_API_KEY` (Polygon, paid) | `FINNHUB_KEY` + `MARKETAUX_API_KEY` (free 100/day) + `FRED_API_KEY` (free, registration) + `ALPHA_VANTAGE_KEY` (free 25/day) | Yahoo's anonymous endpoint rate-limits globally on 200+ symbols; Polygon is required, the rest fill analyst + news + yields |
+| **200+ symbols** | `TOGETHER_API_KEY` + `MASSIVE_API_KEY` (Massive, paid) | `FINNHUB_KEY` + `MARKETAUX_API_KEY` (free 100/day) + `FRED_API_KEY` (free, registration) + `ALPHA_VANTAGE_KEY` (free 25/day) | Yahoo's anonymous endpoint rate-limits globally on 200+ symbols; Massive is required, the rest fill analyst + news + yields |
 
-Sign-up links (free tiers exist for everything except Polygon):
+Sign-up links (free tiers exist for everything except Massive):
 
 | Provider | URL | Free-tier limit |
 |---|---|---|
 | Together AI | https://api.together.ai/settings/api-keys | $1 free credits |
 | Finnhub | https://finnhub.io/register | 60 calls/min |
-| Polygon (Massive) | https://polygon.io/dashboard/api-keys | paid only |
+| Massive | https://massive.com/ | paid only |
 | MarketAux | https://www.marketaux.com/account/dashboard | 100 calls/day |
 | NewsAPI | https://newsapi.org/register | 100 calls/day |
 | FRED | https://fred.stlouisfed.org/docs/api/api_key.html | unlimited (registration only) |

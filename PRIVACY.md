@@ -80,7 +80,7 @@ flows to those providers:
 | Finnhub | Real-time quotes, analyst ratings | https://finnhub.io/policies/privacy |
 | NewsAPI | News headlines correlated to holdings | https://newsapi.org/privacy |
 | Alpha Vantage | Supplemental price data | https://www.alphavantage.co/privacy/ |
-| Polygon (via Massive) | Market data | https://polygon.io/privacy |
+| Massive | Market data, Benzinga news, analyst ratings | https://massive.com/privacy |
 | FRED (St. Louis Fed) | Treasury / TIPS benchmarks | https://www.stlouisfed.org/privacy-notice-and-policy |
 
 If the user does not configure these keys, none of these providers receive
