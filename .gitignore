@@ -34,3 +34,11 @@ Thumbs.db
 .env
 .env.local
 .investorclaw/
+
+# Secrets / credentials
+keys.env
+api-keys.env
+secrets.*
+*.key
+*.pem
+*.secret
